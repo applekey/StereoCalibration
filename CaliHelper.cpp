@@ -3,6 +3,8 @@
 
 unique_ptr<Mat[]> CaliHelper::GrabFringeImages( string* images,int nFrames)
 {
+	
+
 	PGCam pgcam;
 	pgcam.Init(CAMERA_WIDTH,CAMERA_HEIGHT,CAMERA_OFFSET_X,CAMERA_OFFSET_Y);
 	LightCrafter lcr;
@@ -174,4 +176,14 @@ bool CaliHelper::RectifyImages(Mat* CameraImages, int numberOfImages,string outp
 
 	return false;
 
+}
+
+Mat CaliHelper::RotateImage(const Mat& source, double angle)
+{
+
+	 Point2f src_center(source.cols/2.0F, source.rows/2.0F);
+    Mat rot_mat = getRotationMatrix2D(src_center, angle, 1.0);
+    Mat dst;
+    warpAffine(source, dst, rot_mat, source.size());
+    return dst;
 }

@@ -29,4 +29,5 @@ public:
 	static void WriteParmsToFile(CameraParams cameraL,CameraParams cameraR);
 	static unique_ptr<Mat[]> GrabFringeImages(string* images,int nFrames);
 	static bool RectifyImages(Mat* CameraImages, int numberOfImages, string outputLocation);
+	static Mat RotateImage(const Mat& source, double angle);
 };
