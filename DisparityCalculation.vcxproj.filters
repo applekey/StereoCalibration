@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Ti">
+      <UniqueIdentifier>{16a45564-a40e-4ee8-bc32-b2a9b78e706c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ti\BitmapCreator.cpp">
+      <Filter>Source Files\Ti</Filter>
+    </ClCompile>
+    <ClCompile Include="Ti\LCR_Commander.cpp">
+      <Filter>Source Files\Ti</Filter>
+    </ClCompile>
+    <ClCompile Include="Ti\LCR_Command_Packetizer.cpp">
+      <Filter>Source Files\Ti</Filter>
+    </ClCompile>
+    <ClCompile Include="Ti\LightCrafter.cpp">
+      <Filter>Source Files\Ti</Filter>
+    </ClCompile>
+    <ClCompile Include="Ti\Tcp.cpp">
+      <Filter>Source Files\Ti</Filter>
+    </ClCompile>
+    <ClCompile Include="PGCam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WCalibration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CaliHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Ti\BitmapCreator.h">
+      <Filter>Source Files\Ti</Filter>
+    </ClInclude>
+    <ClInclude Include="Ti\LCR_Commander.h">
+      <Filter>Source Files\Ti</Filter>
+    </ClInclude>
+    <ClInclude Include="Ti\LCR_Command_Packetizer.h">
+      <Filter>Source Files\Ti</Filter>
+    </ClInclude>
+    <ClInclude Include="Ti\LCR_Common.h">
+      <Filter>Source Files\Ti</Filter>
+    </ClInclude>
+    <ClInclude Include="Ti\LightCrafter.h">
+      <Filter>Source Files\Ti</Filter>
+    </ClInclude>
+    <ClInclude Include="Ti\Tcp.h">
+      <Filter>Source Files\Ti</Filter>
+    </ClInclude>
+    <ClInclude Include="PGCam.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WCalibration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CaliHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
