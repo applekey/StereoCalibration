@@ -1,4 +1,5 @@
 #include <memory.h>
+#include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -27,6 +28,8 @@ typedef struct {
 	cv::Mat PRinv;
 } CameraParams;
 
+using namespace cv;
+
 
 class Calibration {
 public:
@@ -40,9 +43,10 @@ public:
 	cv::Mat canvas;
 	CALIB_SUCCESS processAll(void);
 
-	const int getCurrentFrame1(){return currentFrame1;};
-	const int getCurrentFrame2(){return currentFrame2;};
-	const int getCurrentFrame (){return currentFrame ;};
+	vector<vector<Mat>> RectifyImages(vector<Mat> leftImages, vector<Mat> rightImages);
+
+
+
 private:
 	//Left camera
 	std::vector<std::vector<cv::Point3f>> objectPoints1;
@@ -60,7 +64,7 @@ private:
 
 	int height;
 	int width;
-	int currentFrame;
+	
 	std::vector<cv::Point3f> objectPointsEach;
 	std::vector<std::vector<cv::Point3f>> objectPointsAll;
 	cv::Size boardSize;

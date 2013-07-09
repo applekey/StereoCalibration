@@ -1,10 +1,9 @@
 #include "CaliHelper.h"
 
 
+
 unique_ptr<Mat[]> CaliHelper::GrabFringeImages( string* images,int nFrames)
 {
-	
-
 	PGCam pgcam;
 	pgcam.Init(CAMERA_WIDTH,CAMERA_HEIGHT,CAMERA_OFFSET_X,CAMERA_OFFSET_Y);
 	LightCrafter lcr;
@@ -25,17 +24,33 @@ unique_ptr<Mat[]> CaliHelper::GrabFringeImages( string* images,int nFrames)
 	return fringeFrames;
 }
 
-unique_ptr<Mat[]> CaliHelper::GetCalibrationImages(int numImag)
+vector<unique_ptr<Mat[]>> CaliHelper::GetCalibrationImages(int numImag)
 {
+	// output
+	unique_ptr<Mat[]> LeftImages(new Mat[numImag]);
+	unique_ptr<Mat[]> RightImages(new Mat[numImag]);
+	vector<unique_ptr<Mat[]>> calibrationImages(2);
+	
+
+	// Setup Calibration
+	Calibration calibration(CALIBRATION_BOARD_WIDTH,CALIBRATION_BOARD_HEIGHT,DISTANCE_TO_CENTER_MM);
+	int successfulRightFrames= 0;
+	int successfulLeftFrames = 0;
+
+	// Project a white image to help with calibration;
+	LightCrafter lcr;
+	Mat whiteImage(684,608, CV_8UC1, Scalar(255));
+	lcr.ProjectImage(whiteImage);
+
     char key = 'c';
 	int capturedImages = 0;
 
-	namedWindow( "Camera", CV_WINDOW_NORMAL  );
+	namedWindow( "left");
+	namedWindow( "right");
 
 	PGCam pgcam;
 	pgcam.Init(CAMERA_WIDTH,CAMERA_HEIGHT,CAMERA_OFFSET_X,CAMERA_OFFSET_Y);
 
-	unique_ptr<Mat[]> caliImages(new Mat[numImag*2]);
 	while(key!='q')
 	{
 		vector<IplImage*> image = pgcam.grabFrame();
@@ -43,25 +58,45 @@ unique_ptr<Mat[]> CaliHelper::GetCalibrationImages(int numImag)
 		char key = cvWaitKey(1);
 		if(key == 'c')
 		{
-			if(capturedImages/2 == numImag)
+			if(successfulRightFrames== numImag && successfulLeftFrames == numImag)
 				break;
 
-			Mat(image[0]).copyTo(caliImages[capturedImages]);
-			capturedImages+=1;
-			Mat(image[1]).copyTo(caliImages[capturedImages]);
-			capturedImages+=1;
+			Mat leftImage(image[0]);
+			Mat rightImage(image[1]);
+
+			CALIB_SUCCESS success = calibration.addImage(leftImage,rightImage,true);
+			if(success == CALIB_SUCCESS_1_ONLY)
+			{
+				LeftImages[successfulLeftFrames] = leftImage;
+				successfulLeftFrames++;
+				
+			}
+			if(CALIB_SUCCESS_2_ONLY)
+			{
+				RightImages[successfulRightFrames] = rightImage;
+				successfulRightFrames++;
+			}
+			if(CALIB_SUCCESS_FRAME)
+			{
+				LeftImages[successfulLeftFrames] = leftImage;
+				RightImages[successfulRightFrames] = rightImage;
+				successfulRightFrames++;
+				successfulLeftFrames++;
+			}
 
 
 			IplImage* view2=cvCloneImage(&(IplImage)Mat(image[0]));
 			cvNot(view2,view2);
-			imshow( "Camera", Mat(view2) );
+			imshow( "left", Mat(view2) );
+			// DO CALIBRATION
+
 			cvReleaseImage(&view2);
 		}
 		else
 		{
 			cv::Mat im1, im2;
-			cv::resize(Mat(image[0]), im1, cv::Size(800,400));
-			cv::resize(Mat(image[1]), im2, cv::Size(800,400));
+			cv::resize(Mat(image[0]), im1, cv::Size(800,600));
+			cv::resize(Mat(image[1]), im2, cv::Size(800,600));
 			//imshow( "Camera", image[0] );
 			imshow("left", im1);
 			imshow("right", im2);
@@ -69,114 +104,14 @@ unique_ptr<Mat[]> CaliHelper::GetCalibrationImages(int numImag)
 			cvReleaseImage(&image[1]);
 		}
 	}
+
+	calibrationImages[0].swap(LeftImages);
+	calibrationImages[1].swap(RightImages);
+
 	cvDestroyWindow("Camera");
   
-	return caliImages;
+	return calibrationImages;
 }	
-
-
-void CaliHelper::SaveImages(Mat* images, int frames,string directory)
-{
-	for(int i=0;i<frames;i++)
-	{
-		char fullDir[100];
-		sprintf(fullDir,"\\Image%d.png",i+1);
-		string fulldir = directory + fullDir;
-		imwrite( fulldir,images[i] );
-	}	
-}
-
-void CaliHelper::WriteParmsToFile(CameraParams cameraL,CameraParams cameraR)
-{
-	//WRITE YAML FILE
-		cv::FileStorage fs("output.yaml", cv::FileStorage::WRITE);
-		fs << "Q" << cameraL.Q;
-		fs << "C1" << cameraL.cameraMatrix;
-		fs << "D1" << cameraL.distCoeffs;
-		fs << "PRinv1" << cameraL.PRinv;
-		fs << "P1" << cameraL.P;
-		fs << "R1" << cameraL.R;
- 
-		fs << "C2" << cameraR.cameraMatrix;
-		fs << "D2" << cameraR.distCoeffs;
-		fs << "PRinv2" << cameraR.PRinv;
-		fs << "P2" << cameraR.P;
-		fs << "R2" << cameraR.R;
-					
-		fs.release();
-}
-
-bool CaliHelper::RectifyImages(Mat* CameraImages, int numberOfImages,string outputLocation)
-{
-	CameraParams cameraL;
-	CameraParams cameraR;
-
-	cv::FileStorage fs("output.yaml", cv::FileStorage::READ);
-
-	fs["Q"] >> cameraL.Q;
-	fs ["C1"] >>cameraL.cameraMatrix;
-	fs ["D1"] >>cameraL.distCoeffs;
-	fs ["PRinv1"] >> cameraL.PRinv;
-	fs ["P1"] >>cameraL.P;
-	fs ["R1"]>> cameraL.R;
- 
-	fs ["C2"] >>cameraR.cameraMatrix;
-	fs  ["D2"]>>cameraR.distCoeffs;
-	fs  ["PRinv2"] >>cameraR.PRinv;
-	fs ["P2"] >>cameraR.P;
-	fs ["R2"] >> cameraR.R;
-					
-	fs.release();
-
-	// DO SOME RECTIFICATION
-
-	cvNamedWindow("bal");
-	for(int i=0;i<numberOfImages*2;i++)
-	{
-	  imshow("bal",CameraImages[i]);
-	  cvWaitKey(0);
-	}
-
-	cv::Mat imageIn, imageRectified;
-	cv::Mat mapX, mapY;
-	cv::Mat output;
-	
-	std::vector<CameraParams> mParams;
-	mParams.emplace_back(cameraL);
-	mParams.emplace_back(cameraR);
- 
-	int width = 800, height = 600;
-	cv::Mat canvas(height, width*2, CV_8UC3);
-	
-	//number of cameras
-	for (int j = 0; j < 2; j++){
-		CameraParams x = mParams[j];
-		initUndistortRectifyMap(x.cameraMatrix, x.distCoeffs, x.R, x.P, cv::Size(width, height), CV_32FC1, mapX, mapY);
- 
-		cout << "width,height = " << width << "," << height << endl;
-		cout << "C1 " << x.cameraMatrix << endl;
-		cout << "D1 " << x.distCoeffs << endl;
-		cout << "P1 " << x.P << endl;
- 
-		//number of images
-		for (int i = 0; i <numberOfImages; i++){
-
-			remap(CameraImages[i], imageRectified, mapX, mapY, CV_INTER_LANCZOS4);
-			//sprintf(outputLocation.c_str(), "rectified/%d_%04d.png",j, i);
-			//cv::imwrite(filename, imageRectified);
-			//if (i == 9 && j == 0){
-			//	for (int row = 0; row < height; row++) for (int col = 0; col < width; col++) for (int chan = 0; chan < 3; chan++) canvas.data[row*width*2*3 + col*3 + chan] = imageRectified.data[row*width*3+col*3 + chan];
-			//} else if (i == 9 && j == 1){
-			//	for (int row = 0; row < height; row++) for (int col = 0; col < width; col++) for (int chan = 0; chan < 3; chan++) canvas.data[width*3 + row*width*2*3 + col*3 + chan] = imageRectified.data[row*width*3+col*3 + chan];
-			//}
-		} 
-	}
-
-
-
-	return false;
-
-}
 
 Mat CaliHelper::RotateImage(const Mat& source, double angle)
 {
